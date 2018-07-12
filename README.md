@@ -6,6 +6,8 @@ Loads any json-like formats as `ofJson`.
 - hjson
 - toml
 
+(inspired by [any-json](https://github.com/any-json/any-json))
+
 ## Dependency
 
 [ofxJsonUtils](https://github.com/2bbb/ofxJsonUtils)
