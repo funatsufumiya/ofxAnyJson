@@ -4,9 +4,11 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
 	ofJson json = ofxAnyJson::loadHjson(ofToDataPath("test.hjson"));
-	ofJson json2 = ofxAnyJson::loadJson(ofToDataPath("test.json"));
+	ofJson json2 = ofxAnyJson::loadYaml(ofToDataPath("test.yaml"));
+	ofJson json3 = ofxAnyJson::loadJson(ofToDataPath("test.json"));
 	ofLog() << json;
 	ofLog() << json2;
+	ofLog() << json3;
 	ofLog() << "done";
 }
 

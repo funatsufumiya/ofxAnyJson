@@ -2,6 +2,7 @@
 
 #include "ofxJsonUtils.h"
 #include "hjson.h"
+#include "yaml.h"
 
 namespace ofx {
 	namespace AnyJson {
@@ -18,6 +19,11 @@ namespace ofx {
 				return hjsonToJson(hjson);
 			}
 
+			static ofJson loadYaml(const std::string &path) {
+				YAML::Node yaml = YAML::LoadFile(path);
+				return yamlToJson(yaml);
+			}
+
 			static ofJson loadJson(const std::string &path) {
 				return ofLoadJson(path);
 			}
@@ -29,8 +35,8 @@ namespace ofx {
 				if (hjson.type() == Hjson::Value::MAP) {
 					for (auto it = hjson.begin(); it != hjson.end(); ++it) {
 						string key = it->first;
-
 						Hjson::Value value = it->second;
+
 						switch (value.type()) {
 						case Hjson::Value::STRING:
 							json[key] = value.to_string();
@@ -97,6 +103,28 @@ namespace ofx {
 				}
 
 				return json;
+			}
+
+			static ofJson yamlToJson(const YAML::Node &yaml) {
+
+				ofJson json;
+				if (yaml.IsMap()){
+					//for (int i = 0; i < yaml.size(); ++i) {
+					//	YAML::Node value = yaml[i];
+					//}
+					for (auto it = yaml.begin(); it != yaml.end(); ++it) {
+						//auto it2 = it;
+						//it->first.as<std::string>();
+						//auto key = it->first;
+						//auto value = it->second;
+					}
+				}
+				else if (yaml.IsSequence()){
+					for (int i = 0; i < yaml.size(); ++i) {
+						YAML::Node value = yaml[i];
+					}
+				}
+				return ofJson();
 			}
 		};
 
