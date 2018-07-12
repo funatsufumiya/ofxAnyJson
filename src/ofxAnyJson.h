@@ -112,19 +112,94 @@ namespace ofx {
 					//for (int i = 0; i < yaml.size(); ++i) {
 					//	YAML::Node value = yaml[i];
 					//}
+					//auto nodes = yaml.m_pMemory->m_pMemory->m_nodes;
 					for (auto it = yaml.begin(); it != yaml.end(); ++it) {
-						//auto it2 = it;
-						//it->first.as<std::string>();
-						//auto key = it->first;
-						//auto value = it->second;
+						auto map = *it.m_iterator.m_mapIt;
+						auto key = map.first->scalar();
+
+						auto value = yaml[key];
+						if (value.IsScalar()) {
+							try {
+								auto b = value.as<bool>();
+								json[key] = b;
+								continue;
+							}
+							catch (YAML::TypedBadConversion<bool> e) {
+							}
+
+							try {
+								auto d = value.as<double>();
+								if (d == (int)d) {
+									json[key] = (int)d;
+								} else {
+									json[key] = d;
+								}
+								continue;
+							}
+							catch (YAML::TypedBadConversion<double> e) {
+							}
+
+							auto s = value.as<string>();
+							json[key] = s;
+						}
+						else if (value.IsMap()) {
+							json[key] = yamlToJson(value);
+						}
+						else if (value.IsSequence()) {
+							json[key] = yamlToJson(value);
+						}
+						else if (value.IsSequence()) {
+							json[key] = yamlToJson(value);
+						}
+						else if (value.IsNull()) {
+							json[key] = NULL;
+						}
 					}
 				}
 				else if (yaml.IsSequence()){
 					for (int i = 0; i < yaml.size(); ++i) {
 						YAML::Node value = yaml[i];
+
+						if (value.IsScalar()) {
+							try {
+								auto b = value.as<bool>();
+								json[i] = b;
+								continue;
+							}
+							catch (YAML::TypedBadConversion<bool> e) {
+							}
+
+							try {
+								auto d = value.as<double>();
+								if (d == (int)d) {
+									json[i] = (int)d;
+								}
+								else {
+									json[i] = d;
+								}
+								continue;
+							}
+							catch (YAML::TypedBadConversion<double> e) {
+							}
+
+							auto s = value.as<string>();
+							json[i] = s;
+						}
+						else if (value.IsMap()) {
+							json[i] = yamlToJson(value);
+						}
+						else if (value.IsSequence()) {
+							json[i] = yamlToJson(value);
+						}
+						else if (value.IsSequence()) {
+							json[i] = yamlToJson(value);
+						}
+						else if (value.IsNull()) {
+							json[i] = NULL;
+						}
 					}
 				}
-				return ofJson();
+				return json;
 			}
 		};
 

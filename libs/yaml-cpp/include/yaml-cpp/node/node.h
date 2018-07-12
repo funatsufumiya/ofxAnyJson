@@ -130,6 +130,8 @@ class YAML_CPP_API Node {
 
  private:
   bool m_isValid;
+
+  public:
   mutable detail::shared_memory_holder m_pMemory;
   mutable detail::node* m_pNode;
 };

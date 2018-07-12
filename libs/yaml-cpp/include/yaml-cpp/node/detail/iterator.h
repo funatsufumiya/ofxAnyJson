@@ -22,7 +22,7 @@ template <typename V>
 class iterator_base : public std::iterator<std::forward_iterator_tag, V,
                                            std::ptrdiff_t, V*, V> {
 
- private:
+ public:
   template <typename>
   friend class iterator_base;
   struct enabler {};
@@ -82,7 +82,7 @@ class iterator_base : public std::iterator<std::forward_iterator_tag, V,
 
   proxy operator->() const { return proxy(**this); }
 
- private:
+ public:
   base_type m_iterator;
   shared_memory_holder m_pMemory;
 };

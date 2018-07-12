@@ -165,7 +165,7 @@ class node_iterator_base
     return it->first->is_defined() && it->second->is_defined();
   }
 
- private:
+ public:
   typename iterator_type::value m_type;
 
   SeqIter m_seqIt;
