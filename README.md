@@ -4,6 +4,7 @@ Loads any json-like formats as `ofJson`.
 
 - yaml
 - hjson
+- toml
 
 ## Dependency
 
@@ -19,8 +20,10 @@ void ofApp::setup(){
 	ofJson json = ofxAnyJson::loadJson(ofToDataPath("test.json"));
 	ofJson yaml = ofxAnyJson::loadYaml(ofToDataPath("test.yaml"));
 	ofJson hjson = ofxAnyJson::loadHjson(ofToDataPath("test.hjson"));
+	ofJson toml = ofxAnyJson::loadToml(ofToDataPath("test.toml"));
 	ofLog() << "json: " << json;
 	ofLog() << "yaml: " << yaml;
 	ofLog() << "hjson: " << hjson;
+	ofLog() << "toml: " << toml;
 }
 ```

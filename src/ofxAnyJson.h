@@ -3,6 +3,7 @@
 #include "ofxJsonUtils.h"
 #include "hjson.h"
 #include "yaml.h"
+#include "cpptoml.h"
 
 namespace ofx {
 	namespace AnyJson {
@@ -20,8 +21,21 @@ namespace ofx {
 			}
 
 			static ofJson loadYaml(const std::string &path) {
-				YAML::Node yaml = YAML::LoadFile(path);
+				ofFile file(path, ofFile::ReadOnly, false);
+				ofBuffer buf = file.readToBuffer();
+				auto str = buf.getData();
+
+				YAML::Node yaml = YAML::Load(str);
 				return yamlToJson(yaml);
+			}
+
+			static ofJson loadToml(const std::string &path) {
+				//ofFile file(path, ofFile::ReadOnly, false);
+				//ofBuffer buf = file.readToBuffer();
+				//auto str = buf.getData();
+
+				shared_ptr<cpptoml::table> toml = cpptoml::parse_file(path);
+				return tomlToJson(toml);
 			}
 
 			static ofJson loadJson(const std::string &path) {
@@ -199,6 +213,110 @@ namespace ofx {
 						}
 					}
 				}
+				return json;
+			}
+
+			static ofJson tomlToJson(shared_ptr<cpptoml::base> toml) {
+				ofJson json;
+
+				if (toml->is_table()) {
+					shared_ptr<cpptoml::table> table = toml->as_table();
+					for (auto it = table->begin(); it != table->end(); ++it) {
+						auto key = it->first;
+						auto value = it->second;
+						if (value->is_table()) {
+							json[key] = tomlToJson(value);
+						}
+						else if (value->is_array()) {
+							json[key] = tomlToJson(value);
+						}
+						else if (value->is_table_array()) {
+							json[key] = tomlToJson(value);
+						}
+						else if (value->is_value()) {
+							auto bv = value->as<bool>();
+							if (bv) {
+								json[key] = (bool)bv->get();
+							}
+							else {
+								auto v = value->as<double>();
+								if (v) {
+									auto d = (double)v->get();
+									if (d == (int)d) {
+										json[key] = (int)d;
+									}
+									else {
+										json[key] = d;
+									}
+								}
+								else {
+									auto sv = value->as<string>();
+									if (sv) {
+										json[key] = (string)sv->get();
+									}
+									else {
+										json[key] = NULL;
+									}
+								}
+							}
+						}
+					}
+				}
+				else if (toml->is_array()) {
+					shared_ptr<cpptoml::array> arr = toml->as_array();
+
+					int i = 0;
+					for (auto it = arr->begin(); it != arr->end(); ++it) {
+						auto value = *it;
+						if (value->is_table()) {
+							json[i] = tomlToJson(value);
+						}
+						else if (value->is_array()) {
+							json[i] = tomlToJson(value);
+						}
+						else if (value->is_table_array()) {
+							json[i] = tomlToJson(value);
+						}
+						else if (value->is_value()) {
+							auto bv = value->as<bool>();
+							if (bv) {
+								json[i] = (bool)bv->get();
+							}
+							else {
+								auto v = value->as<double>();
+								if (v) {
+									auto d = (double)v->get();
+									if (d == (int)d) {
+										json[i] = (int)d;
+									}
+									else {
+										json[i] = d;
+									}
+								}
+								else {
+									auto sv = value->as<string>();
+									if (sv) {
+										json[i] = (string)sv->get();
+									}
+									else {
+										json[i] = NULL;
+									}
+								}
+							}
+						}
+						++i;
+					}
+				}
+				else if (toml->is_table_array()) {
+					shared_ptr<cpptoml::table_array> arr = toml->as_table_array();
+					int i = 0;
+					for (auto it = arr->begin(); it != arr->end(); ++it) {
+						auto value = *it;
+						json[i] = tomlToJson(value);
+						++i;
+					}
+				}
+
 				return json;
 			}
 		};

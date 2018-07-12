@@ -3,13 +3,14 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-	ofJson json = ofxAnyJson::loadHjson(ofToDataPath("test.hjson"));
-	ofJson json2 = ofxAnyJson::loadYaml(ofToDataPath("test.yaml"));
-	ofJson json3 = ofxAnyJson::loadJson(ofToDataPath("test.json"));
-	ofLog() << json;
-	ofLog() << json2;
-	ofLog() << json3;
-	ofLog() << "done";
+	ofJson json = ofxAnyJson::loadJson(ofToDataPath("test.json"));
+	ofJson yaml = ofxAnyJson::loadYaml(ofToDataPath("test.yaml"));
+	ofJson hjson = ofxAnyJson::loadHjson(ofToDataPath("test.hjson"));
+	ofJson toml = ofxAnyJson::loadToml(ofToDataPath("test.toml"));
+	ofLog() << "json: " << json;
+	ofLog() << "yaml: " << yaml;
+	ofLog() << "hjson: " << hjson;
+	ofLog() << "toml: " << toml;
 }
 
 //--------------------------------------------------------------
