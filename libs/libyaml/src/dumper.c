@@ -145,6 +145,7 @@ yaml_emitter_dump(yaml_emitter_t *emitter, yaml_document_t *document)
             * (document->nodes.top - document->nodes.start));
 #else
     emitter->anchors = (struct anchors_tt *)yaml_malloc(sizeof(*(emitter->anchors))
+            * (document->nodes.top - document->nodes.start));
 #endif
     if (!emitter->anchors) goto error;
     memset(emitter->anchors, 0, sizeof(*(emitter->anchors))
