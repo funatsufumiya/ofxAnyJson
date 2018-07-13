@@ -24,9 +24,7 @@ namespace ofx {
 				ofFile file(path, ofFile::ReadOnly, false);
 				ofBuffer buf = file.readToBuffer();
 				auto str = buf.getData();
-
-				YAML::Node yaml = YAML::Load(str);
-				return yamlToJson(yaml);
+				return parseYaml(str);
 			}
 
 			static ofJson loadToml(const std::string &path) {
@@ -119,102 +117,9 @@ namespace ofx {
 				return json;
 			}
 
-			static ofJson yamlToJson(const YAML::Node &yaml) {
-
-				ofJson json;
-				if (yaml.IsMap()){
-					//for (int i = 0; i < yaml.size(); ++i) {
-					//	YAML::Node value = yaml[i];
-					//}
-					//auto nodes = yaml.m_pMemory->m_pMemory->m_nodes;
-					for (auto it = yaml.begin(); it != yaml.end(); ++it) {
-						auto map = *it.m_iterator.m_mapIt;
-						auto key = map.first->scalar();
-
-						auto value = yaml[key];
-						if (value.IsScalar()) {
-							try {
-								auto b = value.as<bool>();
-								json[key] = b;
-								continue;
-							}
-							catch (YAML::TypedBadConversion<bool> e) {
-							}
-
-							try {
-								auto d = value.as<double>();
-								if (d == (int)d) {
-									json[key] = (int)d;
-								} else {
-									json[key] = d;
-								}
-								continue;
-							}
-							catch (YAML::TypedBadConversion<double> e) {
-							}
-
-							auto s = value.as<string>();
-							json[key] = s;
-						}
-						else if (value.IsMap()) {
-							json[key] = yamlToJson(value);
-						}
-						else if (value.IsSequence()) {
-							json[key] = yamlToJson(value);
-						}
-						else if (value.IsSequence()) {
-							json[key] = yamlToJson(value);
-						}
-						else if (value.IsNull()) {
-							json[key] = NULL;
-						}
-					}
-				}
-				else if (yaml.IsSequence()){
-					for (int i = 0; i < yaml.size(); ++i) {
-						YAML::Node value = yaml[i];
-
-						if (value.IsScalar()) {
-							try {
-								auto b = value.as<bool>();
-								json[i] = b;
-								continue;
-							}
-							catch (YAML::TypedBadConversion<bool> e) {
-							}
-
-							try {
-								auto d = value.as<double>();
-								if (d == (int)d) {
-									json[i] = (int)d;
-								}
-								else {
-									json[i] = d;
-								}
-								continue;
-							}
-							catch (YAML::TypedBadConversion<double> e) {
-							}
-
-							auto s = value.as<string>();
-							json[i] = s;
-						}
-						else if (value.IsMap()) {
-							json[i] = yamlToJson(value);
-						}
-						else if (value.IsSequence()) {
-							json[i] = yamlToJson(value);
-						}
-						else if (value.IsSequence()) {
-							json[i] = yamlToJson(value);
-						}
-						else if (value.IsNull()) {
-							json[i] = NULL;
-						}
-					}
-				}
-				return json;
-			}
+			//static ofJson yamlToJson(const YAML::Node &yaml) {
+			//	ofJson json;
+			//}
 
 			static ofJson tomlToJson(shared_ptr<cpptoml::base> toml) {
 				ofJson json;
@@ -316,6 +221,192 @@ namespace ofx {
 						++i;
 					}
 				}
+
+				return json;
+			}
+
+			static ofJson parseYaml(const std::string str) {
+				size_t str_len = str.size();
+				const unsigned char* cstr =(const unsigned char*)str.data();
+
+				yaml_parser_t parser;
+				yaml_token_t  token;
+
+				/* Initialize parser */
+				if (!yaml_parser_initialize(&parser))
+					throw runtime_error("Failed to initialize parser!");
+
+				/* Set input string */
+				yaml_parser_set_input_string(&parser, cstr, str_len);
+
+				ofJson json = ofJson::object();
+				ofJson *cur = &json;
+
+				vector<ofJson*> stack;
+
+				string key;
+
+				yaml_event_t event;
+
+				bool should_have_key = false;
+				bool prev_key = false;
+				bool is_document_root = true;
+
+				do {
+					if (!yaml_parser_parse(&parser, &event)) {
+						ofLogError() << "YAML parser error: " << parser.error;
+						throw runtime_error("YAML parser error");
+					}
+
+					switch (event.type)
+					{
+					case YAML_NO_EVENT: break;
+					case YAML_STREAM_START_EVENT: break;
+					case YAML_STREAM_END_EVENT: break;
+					case YAML_DOCUMENT_START_EVENT: break;
+					case YAML_DOCUMENT_END_EVENT: break;
+					case YAML_SEQUENCE_START_EVENT:
+						{
+							if (cur->is_object()) {
+								(*cur)[key] = ofJson::array();
+								stack.push_back(cur);
+								cur = &(*cur)[key];
+							}
+							else if (cur->is_array()) {
+								int idx = cur->size();
+								(*cur)[idx] = ofJson::array();
+								stack.push_back(cur);
+								cur = &(*cur)[idx];
+							}
+						}
+						break;
+					case YAML_SEQUENCE_END_EVENT:
+						{
+							cur = stack.at(stack.size() - 1);
+							stack.pop_back();
+
+							if (cur->is_object()) {
+								should_have_key = true;
+							}
+						}
+						break;
+					case YAML_MAPPING_START_EVENT:
+						{
+							if (is_document_root) {
+								is_document_root = false;
+							}else{
+								if (cur->is_object()) {
+									(*cur)[key] = ofJson::object();
+									stack.push_back(cur);
+									cur = &(*cur)[key];
+								}
+								else if (cur->is_array()) {
+									int idx = cur->size();
+									(*cur)[idx] = ofJson::object();
+									stack.push_back(cur);
+									cur = &(*cur)[idx];
+								}
+							}
+							should_have_key = true;
+						}
+						break;
+					case YAML_MAPPING_END_EVENT:
+						{
+							if (stack.size() > 0) {
+								cur = stack.at(stack.size() - 1);
+								stack.pop_back();
+
+								if (cur->is_object()) {
+									should_have_key = true;
+								}
+							}
+						}
+						break;
+					case YAML_ALIAS_EVENT:
+						{
+							// ofLog() << "Got alias (anchor %s)\n" << event.data.alias.anchor;
+							ofLogError() << "YAML Parser: Sorry, alias is not supported yet";
+							throw runtime_error("YAML Parser: Sorry, alias is not supported yet");
+						}
+						break;
+					case YAML_SCALAR_EVENT:
+						{
+							const char* _s = (const char*)event.data.scalar.value;
+							if (should_have_key) {
+								key = (const char*)event.data.scalar.value;
+								should_have_key = false;
+								prev_key = true;
+							}
+							else {
+								string s = (const char*)event.data.scalar.value;
+								bool is_bool = false;
+								bool is_int = false;
+								bool is_double = false;
+
+								if ( (s == "true" || s == "false" || s == "yes" || s == "no")
+									&& event.data.scalar.style != YAML_SINGLE_QUOTED_SCALAR_STYLE
+									&& event.data.scalar.style != YAML_DOUBLE_QUOTED_SCALAR_STYLE) {
+									
+									is_bool = true;
+
+								} else {
+									try {
+										double d = stod(s);
+										if (d == (int)d) {
+											is_int = true;
+										}
+										else {
+											is_double = true;
+										}
+									}
+									catch (...) {}
+								}
+
+								if (cur->is_object()) {
+									if (is_bool) {
+										(*cur)[key] = (s == "true" || s == "yes") ? true : false;
+									}else if (is_int) {
+										(*cur)[key] = stoi(s);
+									}else if (is_double) {
+										(*cur)[key] = stod(s);
+									}else {
+										(*cur)[key] = s;
+									}
+
+									if (prev_key) {
+										should_have_key = true;
+									}
+
+									prev_key = false;
+								}
+								else if (cur->is_array()) {
+									if (is_bool) {
+										cur->push_back( (s == "true" || s == "yes") ? true : false );
+									}else if (is_int) {
+										cur->push_back( stoi(s) );
+									}else if (is_double) {
+										cur->push_back( stod(s) );
+									}else {
+										cur->push_back( s );
+									}
+								}
+							}
+						}
+						break;
+					}
+					if (event.type != YAML_SCALAR_EVENT) {
+						prev_key = false;
+					}
+					if (event.type != YAML_STREAM_END_EVENT) {
+						yaml_event_delete(&event);
+					}
+
+				} while (event.type != YAML_STREAM_END_EVENT);
+
+				yaml_event_delete(&event);
+
+				// Cleanup
+				yaml_parser_delete(&parser);
 
 				return json;
 			}
