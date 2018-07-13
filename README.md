@@ -29,3 +29,8 @@ void ofApp::setup(){
 	ofLog() << "toml: " << toml;
 }
 ```
+
+## TODOs
+
+- Implement save functions
+- Support other formats (json5, cson)
