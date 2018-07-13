@@ -140,8 +140,12 @@ yaml_emitter_dump(yaml_emitter_t *emitter, yaml_document_t *document)
 
     assert(emitter->opened);    /* Emitter should be opened. */
 
-    emitter->anchors = (struct anchors_tt *)yaml_malloc(sizeof(*(emitter->anchors))
+#ifdef WIN32
+    emitter->anchors = (yaml_emitter_s::anchors_t *)yaml_malloc(sizeof(*(emitter->anchors))
             * (document->nodes.top - document->nodes.start));
+#else
+    emitter->anchors = (struct anchors_tt *)yaml_malloc(sizeof(*(emitter->anchors))
+#endif
     if (!emitter->anchors) goto error;
     memset(emitter->anchors, 0, sizeof(*(emitter->anchors))
             * (document->nodes.top - document->nodes.start));
