@@ -1,15 +1,6 @@
 
 #include "yaml_private.h"
 
-struct anchors_tt {
-    /** The number of references. */
-    int references;
-    /** The anchor id. */
-    int anchor;
-    /** If the node has been emitted? */
-    int serialized;
-};
-
 /*
  * API functions.
  */
@@ -140,13 +131,9 @@ yaml_emitter_dump(yaml_emitter_t *emitter, yaml_document_t *document)
 
     assert(emitter->opened);    /* Emitter should be opened. */
 
-#ifdef WIN32
-    emitter->anchors = (yaml_emitter_s::anchors_t *)yaml_malloc(sizeof(*(emitter->anchors))
+    emitter->anchors = (yaml_emitter_anchors_t *)yaml_malloc(sizeof(*(emitter->anchors))
             * (document->nodes.top - document->nodes.start));
-#else
-    emitter->anchors = (struct anchors_tt *)yaml_malloc(sizeof(*(emitter->anchors))
-            * (document->nodes.top - document->nodes.start));
-#endif
+
     if (!emitter->anchors) goto error;
     memset(emitter->anchors, 0, sizeof(*(emitter->anchors))
             * (document->nodes.top - document->nodes.start));

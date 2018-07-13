@@ -1526,6 +1526,15 @@ typedef enum yaml_emitter_state_e {
  * family of functions.
  */
 
+struct yaml_emitter_anchors_t {
+	/** The number of references. */
+	int references;
+	/** The anchor id. */
+	int anchor;
+	/** If the node has been emitted? */
+	int serialized;
+};
+
 typedef struct yaml_emitter_s {
 
     /**
@@ -1744,14 +1753,7 @@ typedef struct yaml_emitter_s {
     int closed;
 
     /** The information associated with the document nodes. */
-    struct anchors_t {
-        /** The number of references. */
-        int references;
-        /** The anchor id. */
-        int anchor;
-        /** If the node has been emitted? */
-        int serialized;
-    } *anchors;
+    yaml_emitter_anchors_t *anchors;
 
     /** The last assigned anchor id. */
     int last_anchor_id;
