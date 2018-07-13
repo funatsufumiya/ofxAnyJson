@@ -1526,14 +1526,14 @@ typedef enum yaml_emitter_state_e {
  * family of functions.
  */
 
-struct yaml_emitter_anchors_t {
+typedef struct yaml_emitter_anchors_s {
 	/** The number of references. */
 	int references;
 	/** The anchor id. */
 	int anchor;
 	/** If the node has been emitted? */
 	int serialized;
-};
+} yaml_emitter_anchors_t;
 
 typedef struct yaml_emitter_s {
 
