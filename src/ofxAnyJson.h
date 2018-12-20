@@ -20,10 +20,19 @@ namespace ofx {
 				return hjsonToJson(hjson);
 			}
 
+			static ofJson loadHjsonString(const std::string &str) {
+				Hjson::Value hjson = Hjson::Unmarshal(str);
+				return hjsonToJson(hjson);
+			}
+
 			static ofJson loadYaml(const std::string &path) {
 				ofFile file(path, ofFile::ReadOnly, false);
 				ofBuffer buf = file.readToBuffer();
 				auto str = buf.getData();
+				return parseYaml(str);
+			}
+
+			static ofJson loadYamlString(const std::string &str) {
 				return parseYaml(str);
 			}
 
