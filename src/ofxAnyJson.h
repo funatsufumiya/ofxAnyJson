@@ -21,7 +21,7 @@ namespace ofx {
 			}
 
 			static ofJson loadHjsonString(const std::string &str) {
-				Hjson::Value hjson = Hjson::Unmarshal(str);
+				Hjson::Value hjson = Hjson::Unmarshal(str.c_str());
 				return hjsonToJson(hjson);
 			}
 
